@@ -16,9 +16,11 @@ class StudentRecord(APIView):
 
     def post(self,request):
         serializer = StudentSerializer(data=request.data)
+        first_name= request.data.get("first_name")
+        last_name = request.data.get("last_name")
         if serializer.is_valid():
             serializer.save()
-            return Response({"message":"Successfully Registered" , 'success':True , 'student_fname':serializer.data.first_name , 'student_lname':serializer.data.last_name}, status=status.HTTP_200_CREATED)
+            return Response({"message":"Successfully Registered" ,'first_name':first_name ,'last_name':last_name,'success':True}, status=status.HTTP_201_CREATED)
         return Response({'message':serializer.errors , 'success':False} , status=status.HTTP_203_NON_AUTHORITATIVE_INFORMATION)
     
 
@@ -27,10 +29,32 @@ class GetStudentRecord(APIView):
 
     permission_classes = [AllowAny]
 
-    def get(self,request):
+    def get(self,request, format=None):
         students = StudentModel.objects.all()
         serializer = StudentSerializer(students , many=True)
         return Response(serializer.data,status=status.HTTP_200_OK)
-
-
     
+
+class UpdateStudent(APIView):
+
+    permission_classes = [AllowAny]
+
+
+    def get_student(self,student_id):
+        try:
+            return StudentModel.objects.get(id=student_id)
+
+        except StudentModel.DoesNotExist:
+            return None
+        
+
+    def put(self,request, student_id , format =None):
+        student = self.get_student(student_id)
+        if not student:
+            return Response ({'message':"Student not found", 'success':False},status=status.HTTP_204_NO_CONTENT)
+
+        serializer = StudentSerializer(student,data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message":"Student Updated Successfully",'sucess':True},status=status.HTTP_200_OK)
+        return Response ({"message":"Failed to update student","errors":serializer.errors,'sucess':False},status=status.HTTP_203_NON_AUTHORITATIVE_INFORMATION)
