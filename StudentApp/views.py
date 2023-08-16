@@ -58,3 +58,23 @@ class UpdateStudent(APIView):
             serializer.save()
             return Response({"message":"Student Updated Successfully",'sucess':True},status=status.HTTP_200_OK)
         return Response ({"message":"Failed to update student","errors":serializer.errors,'sucess':False},status=status.HTTP_203_NON_AUTHORITATIVE_INFORMATION)
+
+
+
+class DeleteStudent(APIView):
+
+    def get_student(self,student_id):
+        try:
+            return StudentModel.objects.get(id=student_id)
+        except StudentModel.DoesNotExist:
+            return None
+        
+
+    def delete(self,request,student_id,format=None):
+        
+        student = self.get_student(student_id)
+        if not student:
+            return Response({'message':"Student don't exist",'success':False},status=status.HTTP_203_NON_AUTHORITATIVE_INFORMATION)
+
+        student.delete()
+        return Response({'message':'Student successfully deleted','success':True},status=status.HTTP_200_OK)
